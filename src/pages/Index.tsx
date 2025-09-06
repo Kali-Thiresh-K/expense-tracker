@@ -1,7 +1,12 @@
 import { ExpenseTracker } from "@/components/expense-tracker";
+import { ProtectedRoute } from "@/components/protected-route";
 
 const Index = () => {
-  return <ExpenseTracker />;
+  return (
+    <ProtectedRoute>
+      <ExpenseTracker />
+    </ProtectedRoute>
+  );
 };
 
 export default Index;
