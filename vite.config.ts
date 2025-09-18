@@ -1,10 +1,11 @@
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react-swc"
-import path from "path"
-import { componentTagger } from "lovable-tagger"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "./", // ✅ important for Vercel hosting
   server: {
     host: "::",
     port: 8080,
@@ -19,8 +20,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: "dist",              // ✅ Vercel looks for dist
-    chunkSizeWarningLimit: 1000, // ✅ removes big bundle warning
+    outDir: "dist",              // ✅ makes sure build goes into dist
+    chunkSizeWarningLimit: 1000, // ✅ avoids warning on large JS bundles
   },
-  base: "./", // ✅ ensures assets load correctly on Vercel
-}))
+}));
