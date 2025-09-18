@@ -1,42 +1,173 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+/* ============================
+   Health-o-Meter Design System
+   ============================ */
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+@layer base {
+  :root {
+    /* Core Colors - Light Theme */
+    --background: 165 40% 95%; /* Mint Green background */
+    --foreground: 210 15% 15%; /* Dark Navy Text for trust */
+
+    --card: 165 40% 95%;
+    --card-foreground: 210 15% 15%;
+    --glass: 165 40% 95% / 0.8;
+
+    --primary: 200 90% 50%; /* Blue (Trust) */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 200 90% 65%;
+
+    --secondary: 160 50% 60%; /* Green (Health) */
+    --secondary-foreground: 0 0% 10%;
+
+    --success: 142 50% 35%; /* Green Glow for battery charged */
+    --success-foreground: 0 0% 98%;
+    --success-glow: 142 50% 50%;
+
+    --warning: 32 95% 55%; /* Orange Alerts */
+    --warning-foreground: 0 0% 9%;
+    --warning-glow: 32 95% 65%;
+
+    --destructive: 0 80% 55%; /* Red Alerts */
+    --destructive-foreground: 0 0% 98%;
+
+    --muted: 200 10% 80%;
+    --muted-foreground: 210 15% 30%;
+
+    --accent: 280 70% 65%; /* Playful purple accent */
+    --accent-foreground: 0 0% 98%;
+
+    --border: 200 15% 60%;
+    --input: 200 15% 70%;
+    --ring: 200 90% 50%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(160 50% 60%), hsl(200 90% 60%)); /* Mint → Sky Blue */
+    --gradient-success: linear-gradient(135deg, hsl(142 50% 35%), hsl(160 60% 40%));
+    --gradient-warning: linear-gradient(135deg, hsl(32 95% 55%), hsl(25 90% 55%));
+    --gradient-glass: linear-gradient(135deg, hsl(165 40% 95% / 0.7), hsl(165 40% 95% / 0.3));
+
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.3);
+    --shadow-success: 0 0 30px hsl(var(--success-glow) / 0.3);
+    --shadow-card: 0 8px 32px hsl(165 40% 95% / 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 165 40% 95%;
+    --sidebar-foreground: 210 15% 15%;
+    --sidebar-primary: 200 90% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 50% 60%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 200 20% 70%;
+    --sidebar-ring: 200 90% 50%;
+
+    /* Badges */
+    --badge-gold: #FFD700;
+    --badge-silver: #C0C0C0;
+    --badge-bronze: #CD7F32;
   }
-  to {
-    transform: rotate(360deg);
+
+  /* ========================
+     Dark Theme (Pro Look)
+     ======================== */
+  .dark {
+    --background: 200 20% 10%;
+    --foreground: 0 0% 100%;
+
+    --card: 200 20% 10%;
+    --card-foreground: 0 0% 100%;
+
+    --primary: 200 90% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 40% 40%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 200 20% 25%;
+    --muted-foreground: 0 0% 80%;
+
+    --accent: 280 70% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 20% 25%;
+    --input: 200 20% 30%;
+    --ring: 200 90% 55%;
+
+    --sidebar-background: 200 20% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 200 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 40% 40%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 200 20% 25%;
+    --sidebar-ring: 200 90% 55%;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: var(--gradient-primary);
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
   }
 }
 
-.card {
-  padding: 2em;
-}
+@layer components {
+  /* Glass Card */
+  .glass-card {
+    @apply backdrop-blur-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/20;
+    box-shadow: var(--shadow-card);
+  }
 
-.read-the-docs {
-  color: #888;
+  /* Gradient Text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Hover Lift */
+  .hover-lift {
+    transition: var(--transition-smooth);
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Badge Shine */
+  .badge-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .badge-shine::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  .badge-shine:hover::after {
+    left: 100%;
+  }
 }

@@ -1,11 +1,15 @@
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Target, Calendar, Award } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { SimpleChart } from '@/components/ui/simple-chart';
-import { formatCurrency, calculateCategorySpending, generateSavingSuggestion, defaultCategories } from '@/lib/expense-utils';
-import { DatabaseExpense } from '@/types/database';
+import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown, Target, Calendar, Award } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  formatCurrency,
+  calculateCategorySpending,
+  generateSavingSuggestion,
+  defaultCategories,
+} from "@/lib/expense-utils";
+import { DatabaseExpense } from "@/types/database";
 
 interface DashboardProps {
   expenses: (DatabaseExpense & { date: Date; amount: number })[];
@@ -19,203 +23,126 @@ export const Dashboard = ({ expenses, totalBudget }: DashboardProps) => {
 
   // Current month expenses
   const currentDate = new Date();
-  const currentMonthExpenses = expenses.filter(expense => {
+  const currentMonthExpenses = expenses.filter((expense) => {
     const expenseDate = new Date(expense.date);
-    return expenseDate.getMonth() === currentDate.getMonth() &&
-           expenseDate.getFullYear() === currentDate.getFullYear();
+    return (
+      expenseDate.getMonth() === currentDate.getMonth() &&
+      expenseDate.getFullYear() === currentDate.getFullYear()
+    );
   });
   const monthlySpent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
-  // Yearly breakdown
-  const currentYear = currentDate.getFullYear();
-  const yearlyExpenses = expenses.filter(expense => {
-    const expenseDate = new Date(expense.date);
-    return expenseDate.getFullYear() === currentYear;
-  });
-
-  const monthlyBreakdown = Array.from({ length: 12 }, (_, month) => {
-    const monthExpenses = yearlyExpenses.filter(expense => {
-      const expenseDate = new Date(expense.date);
-      return expenseDate.getMonth() === month;
-    });
-    const monthTotal = monthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-    
-    return {
-      name: new Date(2024, month).toLocaleDateString('en', { month: 'short' }),
-      value: monthTotal,
-      color: `hsl(${(month * 30) % 360}, 70%, 50%)`
-    };
-  });
-
-  // Category spending analysis
-  const categorySpending = calculateCategorySpending(expenses, defaultCategories);
-  const categoryChartData = categorySpending
-    .filter(cat => cat.spent > 0)
-    .map(cat => ({
-      name: cat.category,
-      value: cat.spent,
-      color: cat.color
-    }));
+  // 🔥 Dynamic category budgets
+  const categoriesWithDynamicBudget = defaultCategories.map((cat) => ({
+    ...cat,
+    budget: (cat.allocation || 1 / defaultCategories.length) * totalBudget,
+  }));
+  const categorySpending = calculateCategorySpending(expenses, categoriesWithDynamicBudget);
 
   const savingSuggestions = generateSavingSuggestion(categorySpending);
 
+  // Animations
   const container = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
-
   const item = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    show: { opacity: 1, y: 0 },
   };
 
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-6"
-    >
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-4 lg:space-y-6">
+      {/* 🔹 Top Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <motion.div variants={item}>
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(totalSpent)}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-primary" />
+          <Card className="p-2 bg-gradient-to-r from-blue-500/20 to-blue-400/10 border border-blue-500/30">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-blue-600">Total Spent</p>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(totalSpent)}</p>
               </div>
+              <TrendingUp className="h-6 w-6 text-blue-600" />
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={item}>
-          <Card className={`bg-gradient-to-br ${remaining >= 0 ? 'from-green-500/10 to-green-500/5 border-green-500/20' : 'from-red-500/10 to-red-500/5 border-red-500/20'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Remaining Budget</p>
-                  <p className={`text-2xl font-bold ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(Math.abs(remaining))}
-                  </p>
-                </div>
-                {remaining >= 0 ? (
-                  <Target className="h-8 w-8 text-green-600" />
-                ) : (
-                  <TrendingDown className="h-8 w-8 text-red-600" />
-                )}
+          <Card
+            className={`p-2 bg-gradient-to-r ${
+              remaining >= 0
+                ? "from-green-400/20 to-green-300/10 border-green-400/30"
+                : "from-red-400/20 to-red-300/10 border-red-400/30"
+            }`}
+          >
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-600">Remaining</p>
+                <p className={`text-lg font-bold ${remaining >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {formatCurrency(Math.abs(remaining))}
+                </p>
               </div>
+              {remaining >= 0 ? <Target className="h-6 w-6 text-green-600" /> : <TrendingDown className="h-6 w-6 text-red-600" />}
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div variants={item}>
-          <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-bold text-accent">{formatCurrency(monthlySpent)}</p>
-                </div>
-                <Calendar className="h-8 w-8 text-accent" />
+          <Card className="p-2 bg-gradient-to-r from-indigo-500/20 to-indigo-400/10 border border-indigo-400/30">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-indigo-600">This Month</p>
+                <p className="text-lg font-bold text-indigo-700">{formatCurrency(monthlySpent)}</p>
               </div>
+              <Calendar className="h-6 w-6 text-indigo-600" />
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
-      {/* Budget Progress */}
+      {/* 🔹 Budget Progress */}
       <motion.div variants={item}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Budget Progress</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="p-3">
+            <CardTitle className="text-blue-700 text-sm">Budget Progress</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
+          <CardContent className="p-3">
+            <div className="space-y-2">
+              <Progress value={Math.min(spentPercentage, 100)} className="h-2 bg-blue-200" />
+              <div className="flex justify-between text-xs text-gray-600">
                 <span>Spent: {formatCurrency(totalSpent)}</span>
                 <span>Budget: {formatCurrency(totalBudget)}</span>
               </div>
-              <Progress value={Math.min(spentPercentage, 100)} className="h-3" />
-              <p className="text-sm text-muted-foreground">
-                {spentPercentage > 100 
-                  ? `Over budget by ${formatCurrency(totalSpent - totalBudget)}`
-                  : `${(100 - spentPercentage).toFixed(1)}% remaining`
-                }
+              <p className="text-xs text-blue-600">
+                {spentPercentage > 100
+                  ? `⚠️ Over budget by ${formatCurrency(totalSpent - totalBudget)}`
+                  : `${(100 - spentPercentage).toFixed(1)}% remaining`}
               </p>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Yearly Breakdown */}
-        <motion.div variants={item}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Yearly Breakdown ({currentYear})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <SimpleChart data={monthlyBreakdown} type="bar" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Category Distribution */}
-        <motion.div variants={item}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Spending by Category</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                {categoryChartData.length > 0 ? (
-                  <SimpleChart data={categoryChartData} type="pie" />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No expenses to display
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Category Budget Breakdown */}
+      {/* 🔹 Category Budgets */}
       <motion.div variants={item}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Category Budget Breakdown</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="p-3">
+            <CardTitle className="text-blue-700 text-sm">Category Budget Breakdown</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {categorySpending.map((category) => (
-                <div key={category.category} className="space-y-2">
+                <div key={category.category} className="space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{category.icon}</span>
-                      <span className="font-medium">{category.category}</span>
+                      <span className="text-sm">{category.icon}</span>
+                      <span className="font-medium text-sm">{category.category}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <span className="text-xs text-gray-500">
                       {formatCurrency(category.spent)} / {formatCurrency(category.budget)}
-                    </div>
+                    </span>
                   </div>
-                  <Progress 
-                    value={Math.min(category.percentage, 100)} 
-                    className="h-2"
-                  />
+                  <Progress value={Math.min(category.percentage, 100)} className="h-1.5 bg-blue-200" />
                 </div>
               ))}
             </div>
@@ -223,23 +150,22 @@ export const Dashboard = ({ expenses, totalBudget }: DashboardProps) => {
         </Card>
       </motion.div>
 
-      {/* Smart Insights */}
+      {/* 🔹 Smart Insights */}
       <motion.div variants={item}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Smart Insights
+        <Card className="shadow-sm">
+          <CardHeader className="p-3">
+            <CardTitle className="flex items-center gap-2 text-blue-700 text-sm">
+              <Award className="h-4 w-4" /> Smart Insights
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {savingSuggestions.map((suggestion, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
-                  <Badge variant="secondary" className="mt-1">
+          <CardContent className="p-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {generateSavingSuggestion(categorySpending).map((suggestion, index) => (
+                <div key={index} className="flex items-start gap-2 p-2 bg-blue-50 rounded-md">
+                  <Badge variant="secondary" className="text-xs px-1">
                     Tip
                   </Badge>
-                  <p className="text-sm leading-relaxed">{suggestion}</p>
+                  <p className="text-xs leading-relaxed text-blue-700">{suggestion}</p>
                 </div>
               ))}
             </div>

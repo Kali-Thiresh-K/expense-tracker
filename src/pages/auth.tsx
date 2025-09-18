@@ -3,8 +3,19 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,12 +33,12 @@ const Auth = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: ''
+    fullName: '',
   });
 
   const [signInData, setSignInData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -54,17 +65,17 @@ const Auth = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: signUpData.fullName
-          }
-        }
+            full_name: signUpData.fullName,
+          },
+        },
       });
 
       if (error) {
         setError(error.message);
       } else if (data.user) {
         toast({
-          title: "Account created successfully!",
-          description: "Please check your email to verify your account.",
+          title: 'Account created successfully!',
+          description: 'Please check your email to verify your account.',
         });
         // Auto sign in after successful sign up
         navigate('/');
@@ -91,8 +102,8 @@ const Auth = () => {
         setError(error.message);
       } else if (data.user) {
         toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
+          title: 'Welcome back!',
+          description: 'You have successfully signed in.',
         });
         navigate('/');
       }
@@ -132,7 +143,8 @@ const Auth = () => {
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
-              
+
+              {/* Sign In */}
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
@@ -145,23 +157,33 @@ const Auth = () => {
                         placeholder="Enter your email"
                         className="pl-10"
                         value={signInData.email}
-                        onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) =>
+                          setSignInData((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signin-password"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="Enter your password"
                         className="pl-10 pr-10"
                         value={signInData.password}
-                        onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) =>
+                          setSignInData((prev) => ({
+                            ...prev,
+                            password: e.target.value,
+                          }))
+                        }
                         required
                       />
                       <Button
@@ -171,7 +193,11 @@ const Auth = () => {
                         className="absolute right-2 top-2 h-6 w-6 p-0"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -183,11 +209,12 @@ const Auth = () => {
                   )}
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
                 </form>
               </TabsContent>
-              
+
+              {/* Sign Up */}
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
@@ -200,12 +227,17 @@ const Auth = () => {
                         placeholder="Enter your full name"
                         className="pl-10"
                         value={signUpData.fullName}
-                        onChange={(e) => setSignUpData(prev => ({ ...prev, fullName: e.target.value }))}
+                        onChange={(e) =>
+                          setSignUpData((prev) => ({
+                            ...prev,
+                            fullName: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <div className="relative">
@@ -216,23 +248,33 @@ const Auth = () => {
                         placeholder="Enter your email"
                         className="pl-10"
                         value={signUpData.email}
-                        onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) =>
+                          setSignUpData((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-password"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="Create a password"
                         className="pl-10 pr-10"
                         value={signUpData.password}
-                        onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) =>
+                          setSignUpData((prev) => ({
+                            ...prev,
+                            password: e.target.value,
+                          }))
+                        }
                         required
                       />
                       <Button
@@ -242,11 +284,15 @@ const Auth = () => {
                         className="absolute right-2 top-2 h-6 w-6 p-0"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm">Confirm Password</Label>
                     <div className="relative">
@@ -257,7 +303,12 @@ const Auth = () => {
                         placeholder="Confirm your password"
                         className="pl-10"
                         value={signUpData.confirmPassword}
-                        onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        onChange={(e) =>
+                          setSignUpData((prev) => ({
+                            ...prev,
+                            confirmPassword: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </div>
@@ -270,7 +321,7 @@ const Auth = () => {
                   )}
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                    {isLoading ? 'Creating account...' : 'Create Account'}
                   </Button>
                 </form>
               </TabsContent>

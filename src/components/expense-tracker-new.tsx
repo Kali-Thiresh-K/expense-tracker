@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, LogOut, User } from 'lucide-react';
+import { Plus, LogOut, User, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ExpenseForm } from './expense-form-new';
 import { Dashboard } from './dashboard-new';
@@ -12,10 +12,15 @@ import { CalendarView } from './calendar-view-new';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/expense-utils';
+import { supabase } from '@/lib/supabase';
 
 export const ExpenseTracker = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState(null);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [totalBudget, setTotalBudget] = useState<number>(15000); // 🔹 Default 15000
+  const [newBudget, setNewBudget] = useState<number>(15000); // 🔹 Temp state for modal input
+
   const { 
     expenses, 
     loading, 
@@ -26,6 +31,37 @@ export const ExpenseTracker = () => {
     getYearlyTotal 
   } = useExpenses();
   const { user, signOut } = useAuth();
+
+  // 🔹 Fetch budget from Supabase
+  useEffect(() => {
+    const fetchBudget = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("total_budget")
+        .eq("id", user.id)
+        .single();
+
+      if (data?.total_budget) {
+        setTotalBudget(Number(data.total_budget));
+        setNewBudget(Number(data.total_budget)); // keep modal input in sync
+      }
+    };
+    fetchBudget();
+  }, [user]);
+
+  // 🔹 Save budget to Supabase
+  const handleBudgetChange = async (newBudgetValue: number) => {
+    setTotalBudget(newBudgetValue);
+    setNewBudget(newBudgetValue);
+
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({ total_budget: newBudgetValue })
+        .eq("id", user.id);
+    }
+  };
 
   const handleAddExpense = async (expenseData: any) => {
     await addExpense(expenseData);
@@ -54,7 +90,7 @@ export const ExpenseTracker = () => {
   const yearlyTotal = getYearlyTotal();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -64,7 +100,7 @@ export const ExpenseTracker = () => {
         >
           <div className="flex items-center gap-4">
             <motion.h1
-              className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+              className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.3 }}
@@ -88,35 +124,37 @@ export const ExpenseTracker = () => {
                 <span className="text-sm font-medium">{user?.email}</span>
               </div>
             </Card>
+
+            {/* 🔹 Set Monthly Budget Button */}
+            <Button 
+              onClick={() => setIsBudgetModalOpen(true)} 
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1 text-sm"
+            >
+              <Wallet className="h-4 w-4 mr-1" />
+              Set Monthly Budget
+            </Button>
             
-            <Button onClick={() => setIsFormOpen(true)} className="shadow-lg">
-              <Plus className="h-4 w-4 mr-2" />
+            {/* 🔹 Add Expense Button */}
+            <Button 
+              onClick={() => setIsFormOpen(true)} 
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1 text-sm"
+            >
+              <Plus className="h-3 w-3 mr-1" />
               Add Expense
             </Button>
             
-            <Button variant="outline" onClick={signOut}>
+            {/* 🔹 Sign Out Button */}
+            <Button 
+              onClick={signOut}
+              size="sm"
+              className="border border-blue-600 text-blue-600 bg-white hover:bg-blue-600 hover:text-white rounded-lg px-3 py-1 text-sm"
+            >
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
           </div>
-        </motion.div>
-
-        {/* Monthly Total Highlight */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="mb-6"
-        >
-          <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-center">
-                <div className="text-sm text-muted-foreground">This Month's Spending</div>
-                <div className="text-3xl font-bold text-primary">
-                  {formatCurrency(monthlyTotal)}
-                </div>
-              </CardTitle>
-            </CardHeader>
-          </Card>
         </motion.div>
 
         {/* Main Content */}
@@ -139,7 +177,7 @@ export const ExpenseTracker = () => {
                   date: new Date(exp.date),
                   amount: Number(exp.amount)
                 } as any))} 
-                totalBudget={50000} 
+                totalBudget={totalBudget}
               />
             </TabsContent>
 
@@ -149,7 +187,7 @@ export const ExpenseTracker = () => {
                   ...exp,
                   date: new Date(exp.date),
                   amount: Number(exp.amount)
-                } as any))}
+                } as any))} 
                 onEditExpense={handleEditExpense}
                 onDeleteExpense={deleteExpense}
               />
@@ -167,7 +205,7 @@ export const ExpenseTracker = () => {
           </Tabs>
         </motion.div>
 
-        {/* Welcome Message for New Users */}
+        {/* Welcome Message */}
         {expenses.length === 0 && !loading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -179,7 +217,11 @@ export const ExpenseTracker = () => {
             <p className="text-muted-foreground mb-6">
               Start by adding your first expense to begin tracking your finances.
             </p>
-            <Button onClick={() => setIsFormOpen(true)} size="lg">
+            <Button 
+              onClick={() => setIsFormOpen(true)} 
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Plus className="h-5 w-5 mr-2" />
               Add Your First Expense
             </Button>
@@ -199,6 +241,42 @@ export const ExpenseTracker = () => {
                 onAddExpense={editingExpense ? handleUpdateExpense : handleAddExpense}
                 onClose={handleCloseForm}
               />
+            </motion.div>
+          </div>
+        )}
+
+        {/* Budget Modal */}
+        {isBudgetModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-sm w-full bg-white rounded-xl shadow-lg p-6"
+            >
+              <h2 className="text-lg font-semibold mb-4 text-center">Set Monthly Budget</h2>
+              <input
+                type="number"
+                value={newBudget}
+                onChange={(e) => setNewBudget(Number(e.target.value))}
+                className="w-full border rounded-md p-2 text-center font-semibold text-blue-600"
+              />
+              <div className="flex justify-end gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsBudgetModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => {
+                    handleBudgetChange(newBudget);
+                    setIsBudgetModalOpen(false);
+                  }}
+                >
+                  Save
+                </Button>
+              </div>
             </motion.div>
           </div>
         )}

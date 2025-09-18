@@ -4,7 +4,13 @@ import { Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { defaultCategories, suggestCategory } from '@/lib/expense-utils';
@@ -43,11 +49,11 @@ export const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
       category: category || suggestedCategory || 'Other',
       date: new Date(date),
       description: description || undefined,
-      currency: '₹'
+      currency: '₹',
     };
 
     onAddExpense(expense);
-    
+
     // Reset form
     setTitle('');
     setAmount('');
@@ -55,7 +61,7 @@ export const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
     setDescription('');
     setDate(new Date().toISOString().split('T')[0]);
     setSuggestedCategory('');
-    
+
     if (onClose) onClose();
   };
 
@@ -124,7 +130,9 @@ export const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
               <Label htmlFor="category">Category</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="bg-muted/50 border-muted">
-                  <SelectValue placeholder={suggestedCategory || "Select category"} />
+                  <SelectValue
+                    placeholder={suggestedCategory || 'Select category'}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {defaultCategories.map((cat) => (
@@ -152,17 +160,17 @@ export const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button 
-                type="submit" 
-                className="flex-1 bg-gradient-primary hover:opacity-90 transition-opacity"
+              <Button
+                type="submit"
+                className="flex-1 bg-blue-700 hover:bg-blue-800 text-white transition-colors"
                 disabled={!title || !amount}
               >
                 Add Expense
               </Button>
               {onClose && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={onClose}
                   className="border-muted"
                 >

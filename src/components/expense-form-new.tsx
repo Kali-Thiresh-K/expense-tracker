@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Calendar, DollarSign, FileText, Tag, Sparkles } from 'lucide-react';
+import { X, Calendar, FileText, Tag, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -72,7 +72,12 @@ export const ExpenseForm = ({ expense, onAddExpense, onClose }: ExpenseFormProps
             {isEditing ? 'Edit Expense' : 'Add New Expense'}
           </CardTitle>
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="hover:bg-green-100 hover:text-green-600"
+            >
               <X className="h-4 w-4" />
             </Button>
           )}
@@ -118,14 +123,15 @@ export const ExpenseForm = ({ expense, onAddExpense, onClose }: ExpenseFormProps
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount (₹)</Label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  {/* Replaced DollarSign with ₹ symbol */}
+                  <span className="absolute left-3 top-3 text-muted-foreground font-semibold">₹</span>
                   <Input
                     id="amount"
                     type="number"
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="pl-10"
+                    className="pl-8"
                     step="0.01"
                     min="0"
                     required
@@ -182,15 +188,11 @@ export const ExpenseForm = ({ expense, onAddExpense, onClose }: ExpenseFormProps
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" className="flex-1">
+            {/* Only Submit button remains */}
+            <div className="pt-4">
+              <Button type="submit" className="w-full">
                 {isEditing ? 'Update Expense' : 'Add Expense'}
               </Button>
-              {onClose && (
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-              )}
             </div>
           </form>
         </CardContent>
