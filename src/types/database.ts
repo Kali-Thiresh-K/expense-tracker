@@ -1,13 +1,27 @@
-export interface DatabaseExpense {
-  id: string;
-  user_id: string;
+export interface BaseExpense {
   title: string;
   amount: number;
   category: string;
   description?: string;
-  date: string;
-  created_at: string;
-  updated_at: string;
+  date: string | Date;
+}
+
+export interface DatabaseExpense extends BaseExpense {
+  _id: string;
+  id?: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExpenseData extends BaseExpense {
+  _id?: string;
+  id?: string;
+}
+
+export interface UpdateExpenseData extends Partial<BaseExpense> {
+  _id?: string;
+  id?: string;
 }
 
 export interface CreateExpenseData {

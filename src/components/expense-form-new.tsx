@@ -11,7 +11,7 @@ import { suggestCategory, defaultCategories } from '@/lib/expense-utils';
 import { CreateExpenseData, UpdateExpenseData } from '@/types/database';
 
 interface ExpenseFormProps {
-  expense?: any;
+  expense?: CreateExpenseData | (UpdateExpenseData & { id: string });
   onAddExpense: (expense: CreateExpenseData | UpdateExpenseData) => void;
   onClose?: () => void;
 }
@@ -52,7 +52,11 @@ export const ExpenseForm = ({ expense, onAddExpense, onClose }: ExpenseFormProps
       amount: parseFloat(amount),
       category,
       description: description.trim() || undefined,
-      date,
+      date: new Date(date).toISOString(),
+      ...(expense?._id && {
+        _id: expense._id,
+        id: expense._id
+      })
     };
 
     onAddExpense(expenseData);

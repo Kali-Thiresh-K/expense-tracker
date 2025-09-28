@@ -12,7 +12,7 @@ import { CalendarView } from './calendar-view-new';
 import { useExpenses } from '@/hooks/use-expenses';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/expense-utils';
-import { supabase } from '@/lib/supabase';
+import { budgetApi } from '@/lib/budget';
 
 export const ExpenseTracker = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -30,36 +30,31 @@ export const ExpenseTracker = () => {
     getMonthlyTotal,
     getYearlyTotal 
   } = useExpenses();
-  const { user, signOut } = useAuth();
+  const { user, token, signOut } = useAuth();
 
-  // 🔹 Fetch budget from Supabase
   useEffect(() => {
     const fetchBudget = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("total_budget")
-        .eq("id", user.id)
-        .single();
-
-      if (data?.total_budget) {
-        setTotalBudget(Number(data.total_budget));
-        setNewBudget(Number(data.total_budget)); // keep modal input in sync
+      if (!user || !token) return;
+      try {
+        const { budget } = await budgetApi.getBudget(token);
+        setTotalBudget(budget);
+        setNewBudget(budget); // keep modal input in sync
+      } catch (error) {
+        console.error('Error fetching budget:', error);
       }
     };
     fetchBudget();
-  }, [user]);
+  }, [user, token]);
 
-  // 🔹 Save budget to Supabase
   const handleBudgetChange = async (newBudgetValue: number) => {
-    setTotalBudget(newBudgetValue);
-    setNewBudget(newBudgetValue);
+    if (!user || !token) return;
 
-    if (user) {
-      await supabase
-        .from("profiles")
-        .update({ total_budget: newBudgetValue })
-        .eq("id", user.id);
+    try {
+      await budgetApi.updateBudget(newBudgetValue, token);
+      setTotalBudget(newBudgetValue);
+      setNewBudget(newBudgetValue);
+    } catch (error) {
+      console.error('Error updating budget:', error);
     }
   };
 
@@ -75,7 +70,7 @@ export const ExpenseTracker = () => {
 
   const handleUpdateExpense = async (expenseData: any) => {
     if (editingExpense) {
-      await updateExpense(editingExpense.id, expenseData);
+      await updateExpense(editingExpense._id || editingExpense.id, expenseData);
       setEditingExpense(null);
       setIsFormOpen(false);
     }
@@ -174,9 +169,10 @@ export const ExpenseTracker = () => {
               <Dashboard 
                 expenses={expenses.map(exp => ({
                   ...exp,
+                  id: exp._id,
                   date: new Date(exp.date),
                   amount: Number(exp.amount)
-                } as any))} 
+                }))} 
                 totalBudget={totalBudget}
               />
             </TabsContent>
@@ -185,9 +181,10 @@ export const ExpenseTracker = () => {
               <ExpenseList
                 expenses={expenses.map(exp => ({
                   ...exp,
+                  id: exp._id,
                   date: new Date(exp.date),
                   amount: Number(exp.amount)
-                } as any))} 
+                }))} 
                 onEditExpense={handleEditExpense}
                 onDeleteExpense={deleteExpense}
               />
@@ -197,9 +194,10 @@ export const ExpenseTracker = () => {
               <CalendarView 
                 expenses={expenses.map(exp => ({
                   ...exp,
+                  id: exp._id,
                   date: new Date(exp.date),
                   amount: Number(exp.amount)
-                } as any))} 
+                }))} 
               />
             </TabsContent>
           </Tabs>

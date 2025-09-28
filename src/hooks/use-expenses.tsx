@@ -1,35 +1,26 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './use-auth';
 import { useToast } from './use-toast';
+import { api } from '@/lib/api';
 import { DatabaseExpense, CreateExpenseData, UpdateExpenseData } from '@/types/database';
 
 export const useExpenses = () => {
   const [expenses, setExpenses] = useState<DatabaseExpense[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { toast } = useToast();
 
-  // Fetch expenses from Supabase
+  // Fetch expenses
   const fetchExpenses = async () => {
-    if (!user) {
+    if (!user || !token) {
       setExpenses([]);
       setLoading(false);
       return;
     }
 
     try {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setExpenses(data || []);
+      const data = await api.getExpenses(token);
+      setExpenses(data);
     } catch (error) {
       console.error('Error fetching expenses:', error);
       toast({
@@ -44,7 +35,7 @@ export const useExpenses = () => {
 
   // Add new expense
   const addExpense = async (expenseData: CreateExpenseData) => {
-    if (!user) {
+    if (!user || !token) {
       toast({
         title: "Authentication required",
         description: "Please sign in to add expenses.",
@@ -54,19 +45,7 @@ export const useExpenses = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('expenses')
-        .insert([{
-          ...expenseData,
-          user_id: user.id,
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
+      const data = await api.createExpense(expenseData, token);
       setExpenses(prev => [data, ...prev]);
       toast({
         title: "Expense added successfully",
@@ -84,21 +63,10 @@ export const useExpenses = () => {
 
   // Update expense
   const updateExpense = async (id: string, expenseData: UpdateExpenseData) => {
-    if (!user) return;
+    if (!user || !token) return;
 
     try {
-      const { data, error } = await supabase
-        .from('expenses')
-        .update(expenseData)
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
+      const data = await api.updateExpense(id, expenseData, token);
       setExpenses(prev => 
         prev.map(expense => 
           expense.id === id ? data : expense
@@ -120,19 +88,10 @@ export const useExpenses = () => {
 
   // Delete expense
   const deleteExpense = async (id: string) => {
-    if (!user) return;
+    if (!user || !token) return;
 
     try {
-      const { error } = await supabase
-        .from('expenses')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
+      await api.deleteExpense(id, token);
       setExpenses(prev => prev.filter(expense => expense.id !== id));
       toast({
         title: "Expense deleted successfully",
